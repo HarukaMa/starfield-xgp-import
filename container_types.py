@@ -73,10 +73,13 @@ class Container:
 
 
 class ContainerIndex:
-    def __init__(self, *, package_name: str, mtime: FILETIME, index_uuid: str, containers: list[Container]):
+    def __init__(self, *, flag1: int, package_name: str, mtime: FILETIME, flag2: int, index_uuid: str, unknown: int, containers: list[Container]):
+        self.flag1 = flag1
         self.package_name = package_name
         self.mtime = mtime
+        self.flag2 = flag2
         self.index_uuid = index_uuid
+        self.unknown = unknown
         self.containers = containers
 
     @classmethod
@@ -85,33 +88,27 @@ class ContainerIndex:
         if version != 0xe:
             raise NotSupportedError(f"unsupported container index version: {version}")
         file_count = read_u32(stream)
-        flag = read_u32(stream)
-        if flag != 0:
-            raise NotSupportedError(f"unsupported container index flag: {flag} != 0")
+        flag1 = read_u32(stream)
         package_name = read_utf16_string(stream)
         mtime = FILETIME.from_stream(stream)
-        flag = read_u32(stream)
-        if flag != 3:
-            raise NotSupportedError(f"unsupported container index flag: {flag} != 3")
+        flag2 = read_u32(stream)
         index_uuid = read_utf16_string(stream)
         unknown = read_u64(stream)
-        if unknown != 1073741824:
-            raise NotSupportedError(f"unexpected data: {unknown} != 1073741824")
         containers = []
         for _ in range(file_count):
             containers.append(Container.from_stream(stream))
-        return cls(package_name=package_name, mtime=mtime, index_uuid=index_uuid, containers=containers)
+        return cls(flag1=flag1, package_name=package_name, mtime=mtime, flag2=flag2, index_uuid=index_uuid, unknown=unknown, containers=containers)
 
     def write_file(self, path: str):
         output_file = open(os.path.join(path, "containers.index"), "wb")
         write_u32(output_file, 0xe)
         write_u32(output_file, len(self.containers))
-        write_u32(output_file, 0)
+        write_u32(output_file, self.flag1)
         write_utf16_string(output_file, self.package_name)
         output_file.write(self.mtime.to_bytes())
-        write_u32(output_file, 3)
+        write_u32(output_file, self.flag2)
         write_utf16_string(output_file, self.index_uuid)
-        write_u64(output_file, 1073741824)
+        write_u64(output_file, self.unknown)
         for container in self.containers:
             output_file.write(container.to_bytes())
         output_file.close()
