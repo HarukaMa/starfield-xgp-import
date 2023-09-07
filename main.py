@@ -73,6 +73,13 @@ def main():
     print(f"  {len(save_file.chunks)} chunks")
     print()
 
+    # 3.2 check if the save file already exists
+    for container in container_index.containers:
+        if container.container_name == f"Saves/{save_file.filename}":
+            print(f"Error: Save file already exists: {container.container_name}")
+            os.system("pause")
+            exit(5)
+
     # 4. create a new container
     # 4.1 create container file list
     print("Creating new container")
