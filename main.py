@@ -28,7 +28,7 @@ def main():
         os.system("pause")
         exit(2)
     wgs_path = os.path.join(package_path, "SystemAppData", "wgs")
-    container_regex = re.compile(r"[0-9A-F]{16}_[0-9A-F]{32}")
+    container_regex = re.compile(r"[0-9A-F]{16}_[0-9A-F]{32}$")
     container_path = None
     for d in os.listdir(wgs_path):
         if container_regex.match(d):
