@@ -17,7 +17,7 @@ def main():
         os.system("pause")
         exit(1)
 
-    print("========== Starfield Save File Importer ==========")
+    print("========== Starfield Save File Importer v0.0.5 ==========")
     print("WARNING: This tool is experimental. Always manually back up your existing saves!")
     print()
 

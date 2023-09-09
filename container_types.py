@@ -46,8 +46,9 @@ class Container:
         cloud_id = read_utf16_string(stream)
         seq = read_u8(stream)
         flag = read_u32(stream)
-        if flag not in (1, 5):
-            raise NotSupportedError(f"unsupported container flag: {flag}")
+        # TODO: figure out what the flags mean
+        # if flag not in (1, 5):
+        #     raise NotSupportedError(f"unsupported container flag: {flag}")
         if (cloud_id == "" and flag & 4 == 0) or (cloud_id != "" and flag & 4 != 0):
             raise NotSupportedError(f"mismatch between cloud id and flag state")
         container_uuid = uuid.UUID(bytes=stream.read(16))
