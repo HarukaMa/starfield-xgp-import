@@ -1,19 +1,50 @@
-# Starfield XGP Save Importer
+# Overview
 
-An experimental tool to import .sfs savefiles into XGP savefile container.
+Welcome to our latest project, a Python-based utility for managing save files for the game Starfield. This utility allows users to import a save file, check for its existence in the game's container path, read the container index file, and if necessary, create a new container and add the save file to it. It also provides functionalities for creating a backup of the container, writing the new container file list and index, and printing a completion message. 
 
-## Usage
+# Installation
 
+Follow these steps to install and start working with the project:
+
+## Step 1: Prerequisites
+
+Ensure you have the following prerequisites installed on your machine:
+
+- Python 3.8 or later. You can download it from [here](https://www.python.org/downloads/).
+- Xbox Starfield game installed on your local machine.
+
+## Step 2: Clone the Repository
+
+Clone the repository to your local machine using the following command:
+
+```bash
+git clone https://github.com/HarukaMa/starfield-xgp-import.git
 ```
-$ python3 main.py <path to .sfs file>
+
+## Step 3: Navigate to the Project Directory
+
+Navigate to the project directory using the following command:
+
+```bash
+cd starfield-xgp-import
 ```
 
-Or just drop the .sfs file onto the executable from releases.
+## Step 4: Set the Game Path
 
-**NOTE**: The cloud sync feature of Xbox app might interfere with outside modifications to the savefile container. After shutting down the game, please wait a minute or two before trying to import savefiles to give Xbox app some time to do the sync. 
+Set the package path for the Xbox Starfield game. The path should be:
 
-## Path references
+```bash
+%LOCALAPPDATA%\Packages\BethesdaSoftworks.ProjectGold_3275kfvn8vcwc
+```
 
-Steam version: `Documents\My Games\Starfield\Saves`
+## Step 5: Run the Main Script
 
-Xbox version: `%LOCALAPPDATA%\Packages\BethesdaSoftworks.Starfield_3275kfvn8vcwc\SystemAppData\wgs`
+Finally, run the `main.py` script. You need to specify a source save file as a command line argument. Use the following command:
+
+```bash
+python main.py source_save_file
+```
+
+Replace `source_save_file` with the actual source save file.
+
+That's it! You should now be able to use the project.
