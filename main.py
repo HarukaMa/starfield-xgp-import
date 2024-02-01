@@ -1,11 +1,10 @@
 import datetime
-import io
 import re
 import os
 import shutil
 import sys
 import uuid
-from typing import BinaryIO
+from sys import exit
 
 from container_types import ContainerIndex, NotSupportedError, ContainerFile, ContainerFileList, FILETIME, Container
 from savefile_types import SaveFile

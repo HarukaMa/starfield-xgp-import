@@ -139,8 +139,8 @@ class ContainerFileList:
         files = []
         for _ in range(file_count):
             file_name = read_utf16_fixed_string(stream, 64)
-            file_cloud_uuid = uuid.UUID(bytes_le=stream.read(16))
-            file_uuid = uuid.UUID(bytes_le=stream.read(16))
+            file_cloud_uuid = uuid.UUID(bytes=stream.read(16))
+            file_uuid = uuid.UUID(bytes=stream.read(16))
             file_path = os.path.join(path, file_uuid.bytes_le.hex().upper())
             if not os.path.exists(file_path):
                 raise NotSupportedError(f"file does not exist: {file_path}")

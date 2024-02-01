@@ -13,12 +13,13 @@ class SaveFileChunk(NamedTuple):
     data: bytes
 
 class SaveFile:
-    def __init__(self, *, filename: str, header_size: int, real_header_size: int, uncompressed_size: int, chunks: list[SaveFileChunk]):
+    def __init__(self, *, filename: str, header_size: int, real_header_size: int, uncompressed_size: int, chunks: list[SaveFileChunk], unknown: int):
         self.filename = filename
         self.header_size = header_size
         self.real_header_size = real_header_size
         self.uncompressed_size = uncompressed_size
         self.chunks = chunks
+        self.unknown = unknown
 
     @classmethod
     def from_stream(cls, stream: BinaryIO):
@@ -46,9 +47,7 @@ class SaveFile:
         value = read_u64(stream)
         if value != 0x10:
             raise NotSupportedError(f"unexpected value: {value} != 0x10")
-        value = read_u32(stream)
-        if value != 0x103:
-            raise NotSupportedError(f"unexpected value: {value} != 0x103")
+        unknown = read_u32(stream)
         magic = stream.read(4)
         if magic != b"ZIP ":
             raise NotSupportedError(f"invalid magic: {magic} != \"ZIP \"")
@@ -71,7 +70,7 @@ class SaveFile:
         total_uncompressed_size = sum(len(zlib.decompress(chunk.data)) for chunk in chunks)
         if total_uncompressed_size != uncompressed_size:
             raise NotSupportedError(f"unexpected uncompressed size: {total_uncompressed_size} != {uncompressed_size}")
-        return cls(filename=filename, header_size=header_size, real_header_size=real_header_size, uncompressed_size=uncompressed_size, chunks=chunks)
+        return cls(filename=filename, header_size=header_size, real_header_size=real_header_size, uncompressed_size=uncompressed_size, chunks=chunks, unknown=unknown)
 
     def header_bytes(self):
         output = BytesIO()
@@ -84,7 +83,7 @@ class SaveFile:
         write_u64(output, 0x40000000)
         write_u64(output, 0x40000)
         write_u64(output, 0x10)
-        write_u32(output, 0x103)
+        write_u32(output, self.unknown)
         output.write(b"ZIP ")
         for chunk in self.chunks:
             write_u32(output, chunk.size)
