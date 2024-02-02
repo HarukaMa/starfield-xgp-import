@@ -1,13 +1,14 @@
 import datetime
-import re
 import os
+import re
 import shutil
 import sys
 import uuid
 from sys import exit
 
+import crccheck.crc
+
 from container_types import ContainerIndex, NotSupportedError, ContainerFile, ContainerFileList, FILETIME, Container
-from savefile_types import SaveFile
 
 
 def main():
@@ -16,7 +17,7 @@ def main():
         os.system("pause")
         exit(1)
 
-    print("========== Starfield Save File Importer v0.0.5 ==========")
+    print("========== Starfield Save File Importer v0.0.7 ==========")
     print("WARNING: This tool is experimental. Always manually back up your existing saves!")
     print()
 
@@ -64,17 +65,12 @@ def main():
         os.system("pause")
         exit(4)
     source_save_file = open(source_save_path, "rb")
-    save_file = SaveFile.from_stream(source_save_file)
-    source_save_file.close()
-    print("Parsed save file:")
-    print(f"  Filename: {save_file.filename}")
-    print(f"  Uncompressed size: {save_file.uncompressed_size} bytes")
-    print(f"  {len(save_file.chunks)} chunks")
-    print()
+    save_file_name = os.path.basename(source_save_path)
+    save_file_size = os.path.getsize(source_save_path)
 
     # 3.2 check if the save file already exists
     for container in container_index.containers:
-        if container.container_name == f"Saves/{save_file.filename}":
+        if container.container_name == f"Saves/{save_file_name}":
             print(f"Error: Save file already exists: {container.container_name}")
             os.system("pause")
             exit(5)
@@ -82,18 +78,22 @@ def main():
     # 4. create a new container
     # 4.1 create container file list
     print("Creating new container")
-    files = [
-        ContainerFile("BETHESDAPFH", uuid.uuid4(), save_file.header_bytes()),
-    ]
-    for index, chunk in enumerate(save_file.chunks):
-        files.append(ContainerFile(f"P{index}P", uuid.uuid4(), chunk.data))
+    toc = "version:1;blobSize:16777216;"
+    files = []
+    total_blobs = (save_file_size + 0xFFFFFF) // 0x1000000
+    for blob_index in range(total_blobs):
+        blob_data = source_save_file.read(0x1000000)
+        blob_crc = crccheck.crc.Crc32Jamcrc.calc(blob_data, 0)
+        files.append(ContainerFile(f"BlobData{blob_index}", uuid.uuid4(), blob_data))
+        toc += f"BlobData{blob_index}:{blob_crc};"
+    files.append(ContainerFile("toc", uuid.uuid4(), toc.encode()))
     container_file_list = ContainerFileList(seq=1, files=files)
 
     # 4.2 create container index entry
-    container_name = f"Saves/{save_file.filename}"
+    container_name = f"Saves/{save_file_name}"
     container_uuid = uuid.uuid4()
     mtime = FILETIME.from_timestamp(os.path.getmtime(source_save_path))
-    size = save_file.real_header_size + sum(chunk.size for chunk in save_file.chunks)
+    size = save_file_size + len(toc)
     container = Container(
         container_name=container_name,
         cloud_id="",
